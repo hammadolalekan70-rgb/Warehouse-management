@@ -9,7 +9,7 @@ import AdminRoute from "./components/AdminRoute";
 // YOUR EXISTING PAGES
 import Home from "./pages/Home";
 import About from "./pages/About";
-import Products from "./pages/products";
+import Products from "./pages/Products"; // ✅ FIXED
 import Services from "./pages/Services";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
