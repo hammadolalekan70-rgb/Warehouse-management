@@ -35,64 +35,42 @@ function Dashboard() {
         </div>
         
         <nav className="nav-menu">
-          <Link to="" className="nav-link">
+          {/* Dashboard */}
+          <Link to="" className="nav-link" end>
             <span className="nav-icon">📊</span>
-            Dashboard Home
+            Dashboard
           </Link>
           
-          <Link to="orders" className="nav-link">
-            <span className="nav-icon">📦</span>
-            My Orders
-          </Link>
-          
+          {/* Place Order */}
           <Link to="/place-order" className="nav-link">
             <span className="nav-icon">🛒</span>
-            Place New Order
+            Place Order
           </Link>
           
-          <Link to="payment" className="nav-link">
-            <span className="nav-icon">💰</span>
-            Payment History
-          </Link>
-          
-          <Link to="chat" className="nav-link">
-            <span className="nav-icon">💬</span>
-            Support Chat
-          </Link>
-          
-          <Link to="profile" className="nav-link">
-            <span className="nav-icon">👤</span>
-            Profile Settings
-          </Link>
-          
-          <Link to="track" className="nav-link">
-            <span className="nav-icon">📍</span>
-            Track Order
-          </Link>
-          
+          {/* My Wishlist */}
           <Link to="wishlist" className="nav-link">
             <span className="nav-icon">❤️</span>
             My Wishlist
           </Link>
-
-          {/* Logout Button */}
+          
+          {/* Payment Center */}
+          <Link to="payment" className="nav-link">
+            <span className="nav-icon">💰</span>
+            Payment Center
+          </Link>
+          
+          {/* Chat with Us */}
+          <Link to="chat" className="nav-link">
+            <span className="nav-icon">💬</span>
+            Chat with Us
+          </Link>
+          
+          {/* Logout */}
           <button onClick={handleLogout} className="logout-btn">
             <span className="nav-icon">🚪</span>
             Logout
           </button>
         </nav>
-
-        {/* Quick Stats */}
-        <div className="quick-stats">
-          <div className="stat-item">
-            <span className="stat-label">Member since:</span>
-            <span className="stat-value">2024</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Total orders:</span>
-            <span className="stat-value">12</span>
-          </div>
-        </div>
       </div>
 
       {/* Main Content */}
