@@ -1,6 +1,6 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 function Dashboard() {
@@ -35,37 +35,53 @@ function Dashboard() {
         </div>
         
         <nav className="nav-menu">
-          {/* Dashboard */}
-          <Link to="" className="nav-link" end>
+          {/* 1. Dashboard Home - Use NavLink for active styling */}
+          <NavLink 
+            to="" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            end
+          >
             <span className="nav-icon">📊</span>
             Dashboard
-          </Link>
+          </NavLink>
           
-          {/* Place Order */}
-          <Link to="/place-order" className="nav-link">
+          {/* 2. Place Order */}
+          <NavLink 
+            to="/place-order" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
             <span className="nav-icon">🛒</span>
             Place Order
-          </Link>
+          </NavLink>
           
-          {/* My Wishlist */}
-          <Link to="wishlist" className="nav-link">
+          {/* 3. My Wishlist */}
+          <NavLink 
+            to="wishlist" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
             <span className="nav-icon">❤️</span>
             My Wishlist
-          </Link>
+          </NavLink>
           
-          {/* Payment Center */}
-          <Link to="payment" className="nav-link">
+          {/* 4. Payment Center */}
+          <NavLink 
+            to="payment" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
             <span className="nav-icon">💰</span>
             Payment Center
-          </Link>
+          </NavLink>
           
-          {/* Chat with Us */}
-          <Link to="chat" className="nav-link">
+          {/* 5. Chat with Us */}
+          <NavLink 
+            to="chat" 
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
             <span className="nav-icon">💬</span>
             Chat with Us
-          </Link>
+          </NavLink>
           
-          {/* Logout */}
+          {/* 6. Logout */}
           <button onClick={handleLogout} className="logout-btn">
             <span className="nav-icon">🚪</span>
             Logout

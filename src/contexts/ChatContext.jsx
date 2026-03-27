@@ -1,5 +1,6 @@
-// src/contexts/ChatContext.jsx
+// src/contexts/ChatContext.js
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 const ChatContext = createContext();
 
@@ -10,8 +11,11 @@ export const useChat = () => {
 };
 
 export const ChatProvider = ({ children }) => {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
+  const [customerConversation, setCustomerConversation] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load chats from localStorage
   useEffect(() => {
@@ -36,8 +40,35 @@ export const ChatProvider = ({ children }) => {
     setUnreadCount(count);
   };
 
-  // Customer sends a message
+  // Load customer's own conversation
+  const loadCustomerConversation = async () => {
+    if (!user?.email) return;
+    
+    setIsLoading(true);
+    const userConversation = conversations.find(
+      conv => conv.customerId === user.id || conv.customerEmail === user.email
+    );
+
+    if (userConversation) {
+      setCustomerConversation(userConversation);
+      // Mark unread admin messages as read
+      const hasUnreadAdminMessages = userConversation.messages.some(
+        msg => msg.sender === "admin" && !msg.read
+      );
+      
+      if (hasUnreadAdminMessages) {
+        markMessagesAsRead(userConversation.id);
+      }
+    } else {
+      setCustomerConversation(null);
+    }
+    setIsLoading(false);
+  };
+
+  // Send message from customer
   const sendCustomerMessage = (customerEmail, customerName, message) => {
+    if (!message.trim() || !customerEmail) return;
+    
     const timestamp = new Date().toISOString();
     
     setConversations(prev => {
@@ -67,8 +98,9 @@ export const ChatProvider = ({ children }) => {
           ...prev,
           {
             id: Date.now(),
+            customerId: user?.id,
             customerEmail,
-            customerName,
+            customerName: customerName || customerEmail,
             messages: [
               {
                 id: Date.now(),
@@ -84,10 +116,17 @@ export const ChatProvider = ({ children }) => {
         ];
       }
     });
+    
+    // Update customer conversation
+    setTimeout(() => {
+      loadCustomerConversation();
+    }, 100);
   };
 
-  // Admin sends a reply
+  // Send reply from admin
   const sendAdminReply = (conversationId, message) => {
+    if (!message.trim() || !conversationId) return;
+    
     const timestamp = new Date().toISOString();
     
     setConversations(prev => prev.map(conv => 
@@ -101,7 +140,7 @@ export const ChatProvider = ({ children }) => {
                 text: message,
                 sender: "admin",
                 timestamp,
-                read: true
+                read: false
               }
             ],
             lastUpdated: timestamp
@@ -110,7 +149,7 @@ export const ChatProvider = ({ children }) => {
     ));
   };
 
-  // Mark messages as read
+  // Mark conversation as read (for admin)
   const markConversationAsRead = (conversationId) => {
     setConversations(prev => prev.map(conv => 
       conv.id === conversationId
@@ -122,6 +161,33 @@ export const ChatProvider = ({ children }) => {
           }
         : conv
     ));
+  };
+
+  // Mark customer's messages as read (for customer)
+  const markMessagesAsRead = (conversationId) => {
+    setConversations(prev => prev.map(conv => 
+      conv.id === conversationId
+        ? {
+            ...conv,
+            messages: conv.messages.map(msg => 
+              msg.sender === "admin" && !msg.read ? { ...msg, read: true } : msg
+            )
+          }
+        : conv
+    ));
+    
+    // Update customer conversation state
+    if (customerConversation?.id === conversationId) {
+      setCustomerConversation(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.sender === "admin" && !msg.read ? { ...msg, read: true } : msg
+          )
+        };
+      });
+    }
   };
 
   // Get customer's conversation
@@ -138,12 +204,16 @@ export const ChatProvider = ({ children }) => {
 
   const value = {
     conversations,
+    customerConversation,
     unreadCount,
+    isLoading,
     sendCustomerMessage,
     sendAdminReply,
     markConversationAsRead,
+    markMessagesAsRead,
     getCustomerConversation,
-    getAllConversations
+    getAllConversations,
+    loadCustomerConversation
   };
 
   return (

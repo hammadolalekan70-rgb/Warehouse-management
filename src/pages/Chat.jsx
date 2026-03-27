@@ -1,9 +1,9 @@
-// src/pages/ChatPage.jsx
+// src/pages/Chat.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useChat } from "../contexts/ChatContext";
 
-function ChatPage() {
+function Chat() {
   const { user } = useAuth();
   const { 
     customerConversation,
@@ -93,7 +93,7 @@ function ChatPage() {
   };
 
   return (
-    <div className="chat-page">
+    <div className="customer-chat">
       <div className="chat-header">
         <h1>💬 Chat with Support</h1>
         <p>We're here to help! Our support team will respond as soon as possible.</p>
@@ -135,12 +135,6 @@ function ChatPage() {
                       onClick={() => setMessageText("I need help with payment")}
                     >
                       💰 Payment Issue
-                    </button>
-                    <button 
-                      className="topic-btn" 
-                      onClick={() => setMessageText("I want to return a product")}
-                    >
-                      🔄 Return Request
                     </button>
                   </div>
                 </div>
@@ -230,7 +224,7 @@ function ChatPage() {
           <div className="info-card">
             <span className="info-icon">📧</span>
             <h4>Email Support</h4>
-            <p>hammadolalekan70@gmail.com</p>
+            <p>hammadolalekan@gmail.com</p>
           </div>
           <div className="info-card">
             <span className="info-icon">📞</span>
@@ -243,4 +237,4 @@ function ChatPage() {
   );
 }
 
-export default ChatPage;
+export default Chat;

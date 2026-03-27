@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useChat } from "../../contexts/ChatContext";
 
-
 function AdminChat() {
   const { 
     conversations, 
@@ -17,8 +16,16 @@ function AdminChat() {
   const [searchTerm, setSearchTerm] = useState("");
   const messagesEndRef = useRef(null);
 
+  // Get all conversations
   const allConversations = getAllConversations();
 
+  // Debug: Log when conversations update
+  useEffect(() => {
+    console.log("📨 Admin Chat - All Conversations:", allConversations);
+    console.log("📊 Unread Count:", unreadCount);
+  }, [allConversations, unreadCount]);
+
+  // Filter conversations based on search
   const filteredConversations = allConversations.filter(conv => 
     conv.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -27,30 +34,35 @@ function AdminChat() {
   // Auto-refresh conversations
   useEffect(() => {
     const interval = setInterval(() => {
+      // Refresh the conversations list
+      const updated = getAllConversations();
       if (selectedConversation) {
-        const updated = conversations.find(c => c.id === selectedConversation.id);
-        if (updated) {
-          setSelectedConversation(updated);
+        const updatedSelected = updated.find(c => c.id === selectedConversation.id);
+        if (updatedSelected) {
+          setSelectedConversation(updatedSelected);
         }
       }
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [selectedConversation, conversations]);
+  }, [selectedConversation]);
 
   // Mark as read when opening conversation
   useEffect(() => {
     if (selectedConversation) {
       markConversationAsRead(selectedConversation.id);
     }
-  }, [selectedConversation]);
+  }, [selectedConversation, markConversationAsRead]);
 
+  // Scroll to bottom when messages update
   useEffect(() => {
     scrollToBottom();
-  }, [selectedConversation]);
+  }, [selectedConversation?.messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
   const handleSendReply = (e) => {
@@ -59,30 +71,50 @@ function AdminChat() {
 
     sendAdminReply(selectedConversation.id, replyText);
     setReplyText("");
+    
+    // Scroll to bottom after sending
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
   };
 
   const getUnreadCount = (conversation) => {
     return conversation.messages.filter(m => !m.read && m.sender === "customer").length;
   };
 
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="admin-chat">
       <div className="chat-header">
-        <h1>Customer Support Chat</h1>
+        <h1>💬 Customer Support Chat</h1>
         {unreadCount > 0 && (
           <div className="unread-badge-large">
-            {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
+            🔔 {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
           </div>
         )}
       </div>
 
       <div className="chat-container">
-        {/* Sidebar */}
+        {/* Sidebar - Conversations List */}
         <div className="chat-sidebar">
           <div className="chat-filters">
             <input
               type="text"
-              placeholder="Search customers..."
+              placeholder="🔍 Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -91,7 +123,10 @@ function AdminChat() {
 
           <div className="conversations-list">
             {filteredConversations.length === 0 ? (
-              <p className="no-conversations">No conversations yet</p>
+              <div className="no-conversations">
+                <p>💬 No conversations yet</p>
+                <small>When customers message, they'll appear here</small>
+              </div>
             ) : (
               filteredConversations.map(conv => {
                 const unread = getUnreadCount(conv);
@@ -111,15 +146,17 @@ function AdminChat() {
                     {lastMessage && (
                       <div className="conv-preview">
                         <span className={`preview-sender ${lastMessage.sender}`}>
-                          {lastMessage.sender === "admin" ? "You: " : "Customer: "}
+                          {lastMessage.sender === "admin" ? "📤 You: " : "📥 Customer: "}
                         </span>
                         <span className="preview-text">
-                          {lastMessage.text.substring(0, 30)}...
+                          {lastMessage.text.length > 40 
+                            ? lastMessage.text.substring(0, 40) + "..." 
+                            : lastMessage.text}
                         </span>
                       </div>
                     )}
                     <small className="conv-time">
-                      {new Date(conv.lastUpdated).toLocaleString()}
+                      🕐 {formatTime(conv.lastUpdated)}
                     </small>
                   </div>
                 );
@@ -137,44 +174,66 @@ function AdminChat() {
                   <h3>{selectedConversation.customerName}</h3>
                   <p>{selectedConversation.customerEmail}</p>
                 </div>
+                <div className="chat-stats">
+                  <span>📝 {selectedConversation.messages.length} messages</span>
+                </div>
               </div>
 
               <div className="messages-container">
-                {selectedConversation.messages.map((msg, index) => (
-                  <div
-                    key={msg.id || index}
-                    className={`message ${msg.sender === "admin" ? "sent" : "received"}`}
-                  >
-                    <div className="message-content">
-                      <p>{msg.text}</p>
-                      <span className="message-time">
-                        {new Date(msg.timestamp).toLocaleString()}
-                        {msg.read && msg.sender === "customer" && (
-                          <span className="read-receipt"> ✓ Read</span>
-                        )}
-                      </span>
-                    </div>
+                {selectedConversation.messages.length === 0 ? (
+                  <div className="no-messages">
+                    <p>No messages yet. Start the conversation!</p>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
+                ) : (
+                  <>
+                    {selectedConversation.messages.map((msg, index) => (
+                      <div
+                        key={msg.id || index}
+                        className={`message ${msg.sender === "admin" ? "sent" : "received"}`}
+                      >
+                        <div className="message-bubble">
+                          <div className="message-sender">
+                            {msg.sender === "admin" ? "👤 You" : "👤 Customer"}
+                          </div>
+                          <div className="message-text">
+                            <p>{msg.text}</p>
+                          </div>
+                          <div className="message-meta">
+                            <span className="message-time">
+                              {formatTime(msg.timestamp)}
+                            </span>
+                            {msg.sender === "customer" && msg.read && (
+                              <span className="read-receipt">✓ Read</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </>
+                )}
               </div>
 
               <form onSubmit={handleSendReply} className="reply-form">
                 <input
                   type="text"
-                  placeholder="Type your reply..."
+                  placeholder="✍️ Type your reply..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   className="reply-input"
                 />
-                <button type="submit" className="send-reply-btn">
-                  Send Reply
+                <button type="submit" className="send-reply-btn" disabled={!replyText.trim()}>
+                  📤 Send Reply
                 </button>
               </form>
             </>
           ) : (
             <div className="no-chat-selected">
-              <p>Select a conversation to start replying to customers</p>
+              <div className="empty-state">
+                <span className="empty-icon">💬</span>
+                <h3>Select a conversation</h3>
+                <p>Choose a customer from the list to start replying</p>
+              </div>
             </div>
           )}
         </div>
