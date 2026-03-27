@@ -286,11 +286,14 @@ body {
 .product-card {
   background: rgba(6, 78, 59, 0.8);
   border-radius: 20px;
-  padding: 25px;
+  padding: 0;
   border: 1px solid #fbbf24;
   transition: all 0.4s;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .product-card::before {
@@ -301,6 +304,7 @@ body {
   right: 0;
   height: 5px;
   background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+  z-index: 1;
 }
 
 .product-card:hover {
@@ -309,12 +313,32 @@ body {
   border-color: #f59e0b;
 }
 
-.product-card img {
+.product-card .image-wrapper {
   width: 100%;
   height: 200px;
-  object-fit: contain;
-  margin-bottom: 15px;
-  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px 20px 0 0;
+  flex-shrink: 0;
+}
+
+.product-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.product-card:hover img {
+  transform: scale(1.05);
+}
+
+.product-card .content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card h3 {
@@ -335,7 +359,7 @@ body {
   color: #fbbf24;
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .product-card .stock {
@@ -356,6 +380,7 @@ body {
   cursor: pointer;
   transition: all 0.3s;
   border: 2px solid #fbbf24;
+  margin-top: auto;
 }
 
 .buy-btn:hover {
@@ -4965,46 +4990,6 @@ textarea:valid {
   font-size: 0.8rem;
   margin: 5px 0;
   text-align: center;
-}
-
-.qty-input.error {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.qty-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.qty-btn:disabled:hover {
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  transform: none;
-}
-/* Add to your place order page styles */
-.stock-info {
-  color: #fbbf24;
-  font-size: 0.9rem;
-  margin: 5px 0;
-}
-
-.stock-info strong {
-  color: #10b981;
-  font-weight: 600;
-}
-
-.out-of-stock {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-.stock-error {
-  color: #ef4444;
-  font-size: 0.8rem;
-  margin: 5px 0;
-  text-align: center;
-  font-weight: 500;
 }
 
 .qty-input.error {
