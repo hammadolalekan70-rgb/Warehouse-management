@@ -1,6 +1,8 @@
 // src/pages/Home.jsx
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+
+// Images
 import images1 from "../assets/images-1.jpg"; 
 import images2 from "../assets/images-2.jpg";
 import images3 from "../assets/images-3.jpg";
@@ -10,6 +12,17 @@ import images6 from "../assets/images-6.jpg";
 import images7 from "../assets/images-7.jpg";
 import images8 from "../assets/images-8.jpg";
 import images9 from "../assets/images-9.png";
+import images10 from "../assets/images-10.jpg";
+import images11 from "../assets/images-11.jpg";
+import images12 from "../assets/images-12.jpg";
+import images13 from "../assets/images-13.jpg";
+import images14 from "../assets/images-14.jpg";
+import images15 from "../assets/images-15.jpg";
+import images16 from "../assets/images-16.jpg";
+import images17 from "../assets/images-17.jpg";
+import images18 from "../assets/images-18.jpg";
+import images19 from "../assets/images-19.jpg";
+import images20 from "../assets/images-20.jpg";
 
 const products = [
   { name: "Coca-Cola", brand: "Coca-Cola", category: "Soft Drink", price: 500, img: images1 },
@@ -21,29 +34,21 @@ const products = [
   { name: "Red Bull", brand: "Red Bull", category: "Energy", price: 800, img: images7 },
   { name: "Eva Water", brand: "Eva", category: "Water", price: 300, img: images8 },
   { name: "Aquafina", brand: "Aquafina", category: "Water", price: 300, img: images9 },
+  { name: "Lipton Ice Tea", brand: "Lipton", category: "Soft Drink", price: 350, img: images10 },
+  { name: "Pepsi Max", brand: "Pepsi", category: "Soft Drink", price: 470, img: images11 },
+  { name: "Monster Energy", brand: "Monster", category: "Energy", price: 900, img: images12 },
+  { name: "Tango Orange", brand: "Tango", category: "Soft Drink", price: 400, img: images13 },
+  { name: "Nestle Pure Life", brand: "Nestle", category: "Water", price: 320, img: images14 },
+  { name: "Schweppes", brand: "Schweppes", category: "Soft Drink", price: 450, img: images15 },
+  { name: "Mountain Dew", brand: "Pepsi", category: "Soft Drink", price: 480, img: images16 },
+  { name: "Hollandia", brand: "Hollandia", category: "Dairy", price: 600, img: images17 },
+  { name: "Cappy Juice", brand: "Cappy", category: "Juice", price: 550, img: images18 },
+  { name: "Fayrouz", brand: "Fayrouz", category: "Soft Drink", price: 500, img: images19 },
+  { name: "Amstel Malta", brand: "Amstel", category: "Energy/Non-alcoholic", price: 480, img: images20 },
 ];
 
 function Home() {
   const navigate = useNavigate();
-  const [selectedBrand, setSelectedBrand] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedPrice, setSelectedPrice] = useState("");
-
-  const brands = [...new Set(products.map((p) => p.brand))];
-  const categories = [...new Set(products.map((p) => p.category))];
-
-  const filteredProducts = products.filter((p) => {
-    let brandMatch = selectedBrand ? p.brand === selectedBrand : true;
-    let categoryMatch = selectedCategory ? p.category === selectedCategory : true;
-
-    let priceMatch = true;
-    if (selectedPrice === "low") priceMatch = p.price <= 500;
-    else if (selectedPrice === "medium") priceMatch = p.price > 500 && p.price <= 700;
-    else if (selectedPrice === "high") priceMatch = p.price > 700;
-
-    return brandMatch && categoryMatch && priceMatch;
-  });
-
   const featured = products.slice(0, 4);
 
   const handleBuyNow = () => {
@@ -67,58 +72,9 @@ function Home() {
         <button className="cta-btn" onClick={() => navigate("/products")}>Browse Products</button>
       </section>
 
-      {/* Filter Section */}
-      <section className="filter-section">
-        <h2>Filter Products</h2>
-
-        <div className="filters">
-
-          <div>
-            <label>Brand: </label>
-            <select
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
-            >
-              <option value="">All</option>
-              {brands.map((b, i) => (
-                <option key={i} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label>Category: </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">All</option>
-              {categories.map((c, i) => (
-                <option key={i} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label>Price: </label>
-            <select
-              value={selectedPrice}
-              onChange={(e) => setSelectedPrice(e.target.value)}
-            >
-              <option value="">All</option>
-              <option value="low">₦0 - ₦500</option>
-              <option value="medium">₦501 - ₦700</option>
-              <option value="high">₦701+</option>
-            </select>
-          </div>
-
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="featured-section">
         <h2>Featured Products</h2>
-
         <div className="product-grid">
           {featured.map((p, i) => (
             <div className="product-card" key={i}>
@@ -129,15 +85,13 @@ function Home() {
             </div>
           ))}
         </div>
-
       </section>
 
       {/* All Products */}
       <section className="all-products">
         <h2>All Products</h2>
-
         <div className="product-grid">
-          {filteredProducts.map((p, i) => (
+          {products.map((p, i) => (
             <div className="product-card" key={i}>
               <img src={p.img} alt={p.name} />
               <h3>{p.name}</h3>
@@ -146,30 +100,24 @@ function Home() {
             </div>
           ))}
         </div>
-
       </section>
 
       {/* Why Section */}
       <section className="why-section">
         <h2>Why Buy From Us?</h2>
-
         <div className="why-grid">
-
           <div className="why-card">
             <h3>Fast Delivery</h3>
             <p>Get your products delivered on time, every time.</p>
           </div>
-
           <div className="why-card">
             <h3>Fresh Stock</h3>
             <p>All beverages are stored properly to guarantee freshness.</p>
           </div>
-
           <div className="why-card">
             <h3>Bulk Discounts</h3>
             <p>Special pricing for wholesalers and large orders.</p>
           </div>
-
         </div>
       </section>
 

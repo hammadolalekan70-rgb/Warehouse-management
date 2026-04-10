@@ -1,4 +1,4 @@
-// src/pages/hidden/AdminOrders.jsx
+// src/pages/hidden/AdminOrders.jsx (UPDATED with CSS classes)
 import React, { useState, useEffect } from "react";
 import { getAllOrders, updateOrderStatus } from "../../services/orderService";
 
@@ -6,21 +6,23 @@ function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load orders on component mount
   useEffect(() => {
     loadOrders();
   }, []);
 
   const loadOrders = () => {
+    setLoading(true);
     const allOrders = getAllOrders();
     console.log("📋 Loading orders:", allOrders);
     setOrders(allOrders);
+    setLoading(false);
   };
 
   const handleStatusChange = (orderId, newStatus) => {
     updateOrderStatus(orderId, newStatus);
-    loadOrders(); // Reload to show updated status
+    loadOrders();
   };
 
   const handleViewOrder = (order) => {
@@ -32,74 +34,74 @@ function AdminOrders() {
     return `₦${amount?.toLocaleString() || 0}`;
   };
 
-  const getStatusColor = (status) => {
+  const getStatusClass = (status) => {
     switch(status) {
-      case "Pending": return { bg: "#fff3cd", color: "#856404" };
-      case "Processing": return { bg: "#cce5ff", color: "#004085" };
-      case "Shipped": return { bg: "#d4edda", color: "#155724" };
-      case "Delivered": return { bg: "#d1ecf1", color: "#0c5460" };
-      case "Cancelled": return { bg: "#f8d7da", color: "#721c24" };
-      default: return { bg: "#e2e3e5", color: "#383d41" };
+      case "Pending": return "Pending";
+      case "Processing": return "Processing";
+      case "Shipped": return "Shipped";
+      case "Delivered": return "Delivered";
+      case "Cancelled": return "Cancelled";
+      default: return "";
     }
   };
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>📋 Order Management</h1>
-      
-      {/* Refresh button */}
-      <button 
-        onClick={loadOrders}
-        style={{ padding: "10px", marginBottom: "20px", background: "#3498db", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
-      >
-        🔄 Refresh Orders
-      </button>
+  if (loading) {
+    return (
+      <div className="orders-loading">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
 
-      <div style={{ background: "#f0f0f0", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
-        <p><strong>Total Orders:</strong> {orders.length}</p>
+  return (
+    <div className="admin-orders">
+      <div className="orders-header">
+        <h1>📋 Order Management</h1>
+        <button onClick={loadOrders} className="refresh-btn">
+          🔄 Refresh Orders
+        </button>
+      </div>
+
+      <div className="orders-stats">
+        <div className="stat-item">
+          <span className="stat-label">Total Orders:</span>
+          <span className="stat-value">{orders.length}</span>
+        </div>
       </div>
 
       {orders.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "50px", color: "#999" }}>
-          <h2>No orders yet</h2>
+        <div className="no-orders">
+          <h2>📦 No orders yet</h2>
           <p>When customers place orders, they will appear here.</p>
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-          <thead>
-            <tr style={{ background: "#2c3e50", color: "white" }}>
-              <th style={{ padding: "12px" }}>Order ID</th>
-              <th style={{ padding: "12px" }}>Customer</th>
-              <th style={{ padding: "12px" }}>Email</th>
-              <th style={{ padding: "12px" }}>Items</th>
-              <th style={{ padding: "12px" }}>Total</th>
-              <th style={{ padding: "12px" }}>Status</th>
-              <th style={{ padding: "12px" }}>Date</th>
-              <th style={{ padding: "12px" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map(order => {
-              const statusColors = getStatusColor(order.status);
-              return (
-                <tr key={order.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>#{order.id}</td>
-                  <td style={{ padding: "12px" }}>{order.customerName}</td>
-                  <td style={{ padding: "12px" }}>{order.customerEmail}</td>
-                  <td style={{ padding: "12px" }}>{order.items?.length || 0}</td>
-                  <td style={{ padding: "12px" }}>{formatNaira(order.total)}</td>
-                  <td style={{ padding: "12px" }}>
+        <div className="orders-table-container">
+          <table className="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id}>
+                  <td>#{order.id}</td>
+                  <td>{order.customerName}</td>
+                  <td>{order.customerEmail}</td>
+                  <td>{order.items?.length || 0}</td>
+                  <td>{formatNaira(order.total)}</td>
+                  <td>
                     <select 
                       value={order.status}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      style={{
-                        padding: "5px",
-                        borderRadius: "4px",
-                        background: statusColors.bg,
-                        color: statusColors.color,
-                        border: "none",
-                        cursor: "pointer"
-                      }}
+                      className={`status-select ${getStatusClass(order.status)}`}
                     >
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
@@ -108,154 +110,144 @@ function AdminOrders() {
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </td>
-                  <td style={{ padding: "12px" }}>{order.date}</td>
-                  <td style={{ padding: "12px" }}>
+                  <td>{order.date}</td>
+                  <td>
                     <button 
                       onClick={() => handleViewOrder(order)}
-                      style={{
-                        padding: "5px 10px",
-                        background: "#3498db",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer"
-                      }}
+                      className="view-btn"
                     >
                       View
                     </button>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Order Details Modal */}
       {showModal && selectedOrder && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 1000
-        }} onClick={() => setShowModal(false)}>
-          <div style={{
-            background: "white",
-            padding: "30px",
-            borderRadius: "10px",
-            maxWidth: "600px",
-            width: "90%",
-            maxHeight: "80vh",
-            overflowY: "auto"
-          }} onClick={e => e.stopPropagation()}>
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div className="order-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="order-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
               <h2>Order Details #{selectedOrder.id}</h2>
-              <button 
-                onClick={() => setShowModal(false)}
-                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer" }}
-              >
-                ✕
-              </button>
+              <button className="modal-close-btn" onClick={() => setShowModal(false)}>✕</button>
             </div>
+            
+            <div className="modal-body">
+              {/* Customer Information */}
+              <div className="customer-info-section">
+                <h3>Customer Information</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Name</span>
+                    <span className="info-value">{selectedOrder.customerName}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Email</span>
+                    <span className="info-value">{selectedOrder.customerEmail}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Phone</span>
+                    <span className="info-value">{selectedOrder.customerPhone}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Delivery Method</span>
+                    <span className="info-value">{selectedOrder.deliveryMethod || "Standard"}</span>
+                  </div>
+                  <div className="info-item full-width">
+                    <span className="info-label">Address</span>
+                    <span className="info-value">{selectedOrder.customerAddress}</span>
+                  </div>
+                  {selectedOrder.notes && (
+                    <div className="info-item full-width">
+                      <span className="info-label">Notes</span>
+                      <span className="info-value">{selectedOrder.notes}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-            {/* Customer Information */}
-            <div style={{ background: "#f8f9fa", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
-              <h3 style={{ marginTop: 0 }}>Customer Information</h3>
-              <p><strong>Name:</strong> {selectedOrder.customerName}</p>
-              <p><strong>Email:</strong> {selectedOrder.customerEmail}</p>
-              <p><strong>Phone:</strong> {selectedOrder.customerPhone}</p>
-              <p><strong>Address:</strong> {selectedOrder.customerAddress}</p>
-              <p><strong>Delivery Method:</strong> {selectedOrder.deliveryMethod || "Standard"}</p>
-              {selectedOrder.notes && (
-                <p><strong>Notes:</strong> {selectedOrder.notes}</p>
-              )}
-            </div>
-
-            {/* Order Items */}
-            <div style={{ marginBottom: "20px" }}>
-              <h3>Order Items</h3>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#2c3e50", color: "white" }}>
-                    <th style={{ padding: "8px", textAlign: "left" }}>Product</th>
-                    <th style={{ padding: "8px", textAlign: "center" }}>Qty</th>
-                    <th style={{ padding: "8px", textAlign: "right" }}>Price</th>
-                    <th style={{ padding: "8px", textAlign: "right" }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedOrder.items?.map((item, index) => (
-                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={{ padding: "8px" }}>{item.name}</td>
-                      <td style={{ padding: "8px", textAlign: "center" }}>{item.quantity}</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>{formatNaira(item.price)}</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>{formatNaira(item.quantity * item.price)}</td>
+              {/* Order Items */}
+              <div className="order-items-section">
+                <h3>Order Items</h3>
+                <table className="items-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}><strong>Subtotal:</strong></td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>{formatNaira(selectedOrder.subtotal)}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}><strong>Shipping:</strong></td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>{formatNaira(selectedOrder.shipping)}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}><strong>Tax:</strong></td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>{formatNaira(selectedOrder.tax)}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}><strong>Total:</strong></td>
-                    <td style={{ padding: "8px", textAlign: "right" }}><strong>{formatNaira(selectedOrder.total)}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.items?.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.name}</td>
+                        <td style={{ textAlign: "center" }}>{item.quantity}</td>
+                        <td>{formatNaira(item.price)}</td>
+                        <td>{formatNaira(item.quantity * item.price)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: "right" }}>Subtotal:</td>
+                      <td>{formatNaira(selectedOrder.subtotal)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: "right" }}>Shipping:</td>
+                      <td>{formatNaira(selectedOrder.shipping)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: "right" }}>Tax:</td>
+                      <td>{formatNaira(selectedOrder.tax)}</td>
+                    </tr>
+                    <tr className="total-row">
+                      <td colSpan="3" style={{ textAlign: "right" }}><strong>Total:</strong></td>
+                      <td><strong>{formatNaira(selectedOrder.total)}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
 
-            {/* Order Status */}
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              <button 
-                onClick={() => {
-                  handleStatusChange(selectedOrder.id, "Processing");
-                  setShowModal(false);
-                }}
-                style={{ padding: "8px 16px", background: "#17a2b8", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Process
-              </button>
-              <button 
-                onClick={() => {
-                  handleStatusChange(selectedOrder.id, "Shipped");
-                  setShowModal(false);
-                }}
-                style={{ padding: "8px 16px", background: "#ffc107", color: "black", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Ship
-              </button>
-              <button 
-                onClick={() => {
-                  handleStatusChange(selectedOrder.id, "Delivered");
-                  setShowModal(false);
-                }}
-                style={{ padding: "8px 16px", background: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Deliver
-              </button>
-              <button 
-                onClick={() => setShowModal(false)}
-                style={{ padding: "8px 16px", background: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Close
-              </button>
+              {/* Modal Actions */}
+              <div className="modal-actions">
+                <button 
+                  onClick={() => {
+                    handleStatusChange(selectedOrder.id, "Processing");
+                    setShowModal(false);
+                  }}
+                  className="action-btn process"
+                >
+                  Process
+                </button>
+                <button 
+                  onClick={() => {
+                    handleStatusChange(selectedOrder.id, "Shipped");
+                    setShowModal(false);
+                  }}
+                  className="action-btn ship"
+                >
+                  Ship
+                </button>
+                <button 
+                  onClick={() => {
+                    handleStatusChange(selectedOrder.id, "Delivered");
+                    setShowModal(false);
+                  }}
+                  className="action-btn deliver"
+                >
+                  Deliver
+                </button>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="action-btn close"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

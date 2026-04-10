@@ -1,4 +1,3 @@
-// src/pages/products.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -57,10 +56,8 @@ function ProductCard({ product }) {
 
   const handleBuyNow = () => {
     if (!user) {
-      // Not logged in - redirect to login with return URL to dashboard
       navigate("/login?redirect=dashboard");
     } else {
-      // Logged in - go to dashboard
       navigate("/dashboard");
     }
   };
@@ -72,25 +69,51 @@ function ProductCard({ product }) {
       <p className="brand">{product.brand}</p>
       <p className="price">₦{product.price}</p>
       <p className="stock">In Stock: {product.stock}</p>
-      <button onClick={handleBuyNow} className="buy-btn">Buy Now</button>
+      <button onClick={handleBuyNow} className="buy-btn">
+        Buy Now
+      </button>
     </div>
   );
 }
 
 function Products() {
-  const { products } = useProducts(); // Get products from context
+  const { products } = useProducts();
 
   return (
     <section className="products-page">
-      <h1>Our Products</h1>
+
+      {/* HERO SECTION */}
+      <div className="hero">
+        <div className="hero-content">
+          <h1>Discover Amazing Products</h1>
+          <p>
+            Shop top-quality items at the best prices. Fast, reliable, and made for you.
+          </p>
+          <button
+            className="hero-btn"
+            onClick={() =>
+              document
+                .getElementById("products-section")
+                .scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            Shop Now
+          </button>
+        </div>
+      </div>
+
+      {/* PRODUCTS */}
+      <h2 id="products-section" className="section-title">
+        Our Products
+      </h2>
 
       <div className="product-grid">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
+
     </section>
-    
   );
 }
 

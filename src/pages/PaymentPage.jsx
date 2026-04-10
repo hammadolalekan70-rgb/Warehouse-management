@@ -1,273 +1,378 @@
 // src/pages/PaymentPage.jsx
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function PaymentPage() {
-  // Load payments from localStorage or create mock data
-  const [payments, setPayments] = useState(
-    JSON.parse(localStorage.getItem("payments")) || [
-      { orderId: 101, customer: "Alice", amount: 12000, status: "Pending" }, // Changed to Naira amounts
-      { orderId: 102, customer: "Bob", amount: 8000, status: "Paid" },
-      { orderId: 103, customer: "Charlie", amount: 20000, status: "Pending" },
-      { orderId: 104, customer: "John", amount: 15000, status: "Paid" },
-      { orderId: 105, customer: "Jane", amount: 25000, status: "Pending" },
-    ]
-  );
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [amount, setAmount] = useState("");
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiryDate: "",
+    cvv: ""
+  });
+  const [bankDetails, setBankDetails] = useState({
+    accountNumber: "",
+    accountName: "",
+    bankName: ""
+  });
+  const [ussdCode, setUssdCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [paymentHistory, setPaymentHistory] = useState([]);
 
-  const confirmPayment = (orderId) => {
-    const updated = payments.map((p) =>
-      p.orderId === orderId ? { ...p, status: "Paid" } : p
-    );
-    setPayments(updated);
-    localStorage.setItem("payments", JSON.stringify(updated));
+  // Load payment history from localStorage
+  useEffect(() => {
+    const savedPayments = localStorage.getItem(`payments_${user?.email}`);
+    if (savedPayments) {
+      setPaymentHistory(JSON.parse(savedPayments));
+    } else {
+      // Mock payment history
+      setPaymentHistory([
+        { id: 1, orderId: "ORD-001", amount: 12500, date: "2024-03-25", status: "Completed", method: "Card" },
+        { id: 2, orderId: "ORD-002", amount: 8000, date: "2024-03-20", status: "Completed", method: "Bank Transfer" },
+        { id: 3, orderId: "ORD-003", amount: 4500, date: "2024-03-15", status: "Completed", method: "USSD" },
+      ]);
+    }
+  }, [user]);
+
+  const handleCardInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "cardNumber") {
+      // Format card number with spaces every 4 digits
+      let formatted = value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+      setCardDetails({ ...cardDetails, [name]: formatted });
+    } else {
+      setCardDetails({ ...cardDetails, [name]: value });
+    }
   };
 
-  // Calculate statistics
-  const totalOrders = payments.length;
-  const pendingPayments = payments.filter(p => p.status === "Pending").length;
-  const paidPayments = payments.filter(p => p.status === "Paid").length;
-  const totalRevenue = payments.reduce((acc, p) => acc + p.amount, 0);
-  const pendingAmount = payments
-    .filter(p => p.status === "Pending")
-    .reduce((acc, p) => acc + p.amount, 0);
-  const paidAmount = payments
-    .filter(p => p.status === "Paid")
-    .reduce((acc, p) => acc + p.amount, 0);
+  const handleBankInputChange = (e) => {
+    setBankDetails({ ...bankDetails, [e.target.name]: e.target.value });
+  };
 
-  // Format currency in Naira
+  const handlePayment = (e) => {
+    e.preventDefault();
+    
+    if (!amount || parseFloat(amount) <= 0) {
+      setPaymentError("Please enter a valid amount");
+      return;
+    }
+
+    setLoading(true);
+    setPaymentError("");
+
+    // Simulate payment processing
+    setTimeout(() => {
+      // Validate based on payment method
+      let isValid = true;
+      
+      if (paymentMethod === "card") {
+        if (cardDetails.cardNumber.replace(/\s/g, '').length !== 16) {
+          setPaymentError("Invalid card number");
+          isValid = false;
+        } else if (!cardDetails.cardName) {
+          setPaymentError("Please enter cardholder name");
+          isValid = false;
+        } else if (cardDetails.expiryDate.length !== 5) {
+          setPaymentError("Invalid expiry date (MM/YY)");
+          isValid = false;
+        } else if (cardDetails.cvv.length !== 3) {
+          setPaymentError("Invalid CVV");
+          isValid = false;
+        }
+      } else if (paymentMethod === "bank") {
+        if (bankDetails.accountNumber.length !== 10) {
+          setPaymentError("Invalid account number (10 digits)");
+          isValid = false;
+        } else if (!bankDetails.accountName) {
+          setPaymentError("Please enter account name");
+          isValid = false;
+        } else if (!bankDetails.bankName) {
+          setPaymentError("Please select bank");
+          isValid = false;
+        }
+      } else if (paymentMethod === "ussd") {
+        if (!ussdCode) {
+          setPaymentError("Please enter USSD code");
+          isValid = false;
+        }
+      }
+
+      if (isValid) {
+        // Process payment
+        const newPayment = {
+          id: paymentHistory.length + 1,
+          orderId: `ORD-${Math.floor(Math.random() * 10000)}`,
+          amount: parseFloat(amount),
+          date: new Date().toISOString().split('T')[0],
+          status: "Completed",
+          method: paymentMethod === "card" ? "Card" : paymentMethod === "bank" ? "Bank Transfer" : "USSD"
+        };
+        
+        setPaymentHistory([newPayment, ...paymentHistory]);
+        localStorage.setItem(`payments_${user?.email}`, JSON.stringify([newPayment, ...paymentHistory]));
+        
+        setPaymentSuccess(true);
+        setTimeout(() => {
+          setPaymentSuccess(false);
+          setAmount("");
+          setCardDetails({ cardNumber: "", cardName: "", expiryDate: "", cvv: "" });
+          setBankDetails({ accountNumber: "", accountName: "", bankName: "" });
+          setUssdCode("");
+        }, 3000);
+      }
+      
+      setLoading(false);
+    }, 2000);
+  };
+
   const formatNaira = (amount) => {
     return `₦${amount.toLocaleString('en-NG')}`;
   };
 
-  return (
-    <div style={styles.container}>
-      <h1 style={styles.header}>Payment Dashboard</h1>
+  const paymentMethods = [
+    { id: "card", name: "💳 Card Payment", icon: "💳", description: "Visa, Mastercard, Verve" },
+    { id: "bank", name: "🏦 Bank Transfer", icon: "🏦", description: "Direct bank transfer" },
+    { id: "ussd", name: "📱 USSD Code", icon: "📱", description: "Quick USSD payment" },
+  ];
 
-      {/* Statistics Cards */}
-      <div style={styles.cardsGrid}>
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Total Orders</h3>
-          <p style={styles.cardValue}>{totalOrders}</p>
-          <p style={styles.cardSubtext}>All time</p>
+  return (
+    <div className="payment-page">
+      <div className="payment-header">
+        <h1>💳 Make a Payment</h1>
+        <p>Complete your order payment securely</p>
+      </div>
+
+      {paymentSuccess && (
+        <div className="payment-success-alert">
+          <span>✅</span>
+          <p>Payment successful! Your transaction has been completed.</p>
         </div>
-        
-        <div style={{...styles.card, ...styles.pendingCard}}>
-          <h3 style={styles.cardTitle}>Pending Payments</h3>
-          <p style={styles.cardValue}>{pendingPayments}</p>
-          <p style={styles.cardSubtext}>{formatNaira(pendingAmount)}</p>
+      )}
+
+      <div className="payment-grid">
+        {/* Payment Form */}
+        <div className="payment-form-container">
+          <h2>Payment Details</h2>
+          
+          {/* Payment Method Selection */}
+          <div className="payment-methods">
+            {paymentMethods.map(method => (
+              <div
+                key={method.id}
+                className={`payment-method ${paymentMethod === method.id ? 'active' : ''}`}
+                onClick={() => setPaymentMethod(method.id)}
+              >
+                <div className="method-icon">{method.icon}</div>
+                <div className="method-info">
+                  <h4>{method.name}</h4>
+                  <p>{method.description}</p>
+                </div>
+                {paymentMethod === method.id && <div className="method-check">✓</div>}
+              </div>
+            ))}
+          </div>
+
+          <form onSubmit={handlePayment}>
+            <div className="form-group">
+              <label>Amount to Pay</label>
+              <div className="amount-input-wrapper">
+                <span className="currency-symbol">₦</span>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  step="100"
+                  min="100"
+                  required
+                />
+              </div>
+            </div>
+
+            {paymentMethod === "card" && (
+              <div className="card-details">
+                <div className="form-group">
+                  <label>Card Number</label>
+                  <input
+                    type="text"
+                    name="cardNumber"
+                    value={cardDetails.cardNumber}
+                    onChange={handleCardInputChange}
+                    placeholder="1234 5678 9012 3456"
+                    maxLength="19"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Cardholder Name</label>
+                  <input
+                    type="text"
+                    name="cardName"
+                    value={cardDetails.cardName}
+                    onChange={handleCardInputChange}
+                    placeholder="Name on card"
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Expiry Date</label>
+                    <input
+                      type="text"
+                      name="expiryDate"
+                      value={cardDetails.expiryDate}
+                      onChange={handleCardInputChange}
+                      placeholder="MM/YY"
+                      maxLength="5"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>CVV</label>
+                    <input
+                      type="password"
+                      name="cvv"
+                      value={cardDetails.cvv}
+                      onChange={handleCardInputChange}
+                      placeholder="123"
+                      maxLength="3"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === "bank" && (
+              <div className="bank-details">
+                <div className="form-group">
+                  <label>Account Number</label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={bankDetails.accountNumber}
+                    onChange={handleBankInputChange}
+                    placeholder="0123456789"
+                    maxLength="10"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Account Name</label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    value={bankDetails.accountName}
+                    onChange={handleBankInputChange}
+                    placeholder="Account holder name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Bank Name</label>
+                  <select
+                    name="bankName"
+                    value={bankDetails.bankName}
+                    onChange={handleBankInputChange}
+                    required
+                  >
+                    <option value="">Select Bank</option>
+                    <option value="Access Bank">Access Bank</option>
+                    <option value="GTBank">GTBank</option>
+                    <option value="First Bank">First Bank</option>
+                    <option value="UBA">UBA</option>
+                    <option value="Zenith Bank">Zenith Bank</option>
+                    <option value="Fidelity Bank">Fidelity Bank</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === "ussd" && (
+              <div className="ussd-details">
+                <div className="form-group">
+                  <label>USSD Code</label>
+                  <input
+                    type="text"
+                    value={ussdCode}
+                    onChange={(e) => setUssdCode(e.target.value)}
+                    placeholder="*894*amount*account#"
+                    required
+                  />
+                </div>
+                <div className="ussd-info">
+                  <p>📱 Dial the USSD code on your phone and follow the prompt</p>
+                  <p className="ussd-example">Example: *894*1000*123456789#</p>
+                </div>
+              </div>
+            )}
+
+            {paymentError && <div className="payment-error">{paymentError}</div>}
+
+            <button type="submit" className="pay-now-btn" disabled={loading}>
+              {loading ? "Processing..." : `Pay ${amount ? formatNaira(amount) : "Now"}`}
+            </button>
+          </form>
         </div>
-        
-        <div style={{...styles.card, ...styles.paidCard}}>
-          <h3 style={styles.cardTitle}>Paid Payments</h3>
-          <p style={styles.cardValue}>{paidPayments}</p>
-          <p style={styles.cardSubtext}>{formatNaira(paidAmount)}</p>
-        </div>
-        
-        <div style={{...styles.card, ...styles.revenueCard}}>
-          <h3 style={styles.cardTitle}>Total Revenue</h3>
-          <p style={styles.cardValue}>{formatNaira(totalRevenue)}</p>
-          <p style={styles.cardSubtext}>All time</p>
+
+        {/* Payment History */}
+        <div className="payment-history-container">
+          <h2>Payment History</h2>
+          <div className="payment-history-list">
+            {paymentHistory.length > 0 ? (
+              paymentHistory.map(payment => (
+                <div key={payment.id} className="payment-history-item">
+                  <div className="history-icon">
+                    {payment.method === "Card" ? "💳" : payment.method === "Bank Transfer" ? "🏦" : "📱"}
+                  </div>
+                  <div className="history-details">
+                    <p className="history-order">{payment.orderId}</p>
+                    <p className="history-date">{payment.date}</p>
+                    <p className="history-method">{payment.method}</p>
+                  </div>
+                  <div className="history-amount">
+                    <p className="amount-value">{formatNaira(payment.amount)}</p>
+                    <span className="status-completed">✓ {payment.status}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-history">
+                <p>No payment history yet</p>
+                <span>Make your first payment</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Payments Table */}
-      <div style={styles.tableContainer}>
-        <h2 style={styles.tableHeader}>Payment History</h2>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Order ID</th>
-              <th style={styles.th}>Customer</th>
-              <th style={styles.th}>Amount (₦)</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => (
-              <tr key={p.orderId} style={styles.tr}>
-                <td style={styles.td}>#{p.orderId}</td>
-                <td style={styles.td}>{p.customer}</td>
-                <td style={styles.td}>
-                  <span style={styles.amount}>{formatNaira(p.amount)}</span>
-                </td>
-                <td style={styles.td}>
-                  <span style={{
-                    ...styles.statusBadge,
-                    ...(p.status === "Paid" ? styles.statusPaid : styles.statusPending)
-                  }}>
-                    {p.status}
-                  </span>
-                </td>
-                <td style={styles.td}>
-                  {p.status === "Pending" && (
-                    <button 
-                      style={styles.confirmButton} 
-                      onClick={() => confirmPayment(p.orderId)}
-                      onMouseEnter={(e) => e.target.style.background = styles.confirmButtonHover.background}
-                      onMouseLeave={(e) => e.target.style.background = styles.confirmButton.background}
-                    >
-                      ✓ Confirm Payment
-                    </button>
-                  )}
-                  {p.status === "Paid" && (
-                    <span style={styles.paidBadge}>✓ Paid</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {payments.length === 0 && (
-          <div style={styles.noData}>
-            <p>No payment records found</p>
-          </div>
-        )}
+      {/* Payment Info Cards */}
+      <div className="payment-info-cards">
+        <div className="info-card">
+          <span className="info-icon">🔒</span>
+          <h4>Secure Payment</h4>
+          <p>Your payment information is encrypted and secure</p>
+        </div>
+        <div className="info-card">
+          <span className="info-icon">⚡</span>
+          <h4>Instant Processing</h4>
+          <p>Payments are processed immediately</p>
+        </div>
+        <div className="info-card">
+          <span className="info-icon">📱</span>
+          <h4>Multiple Methods</h4>
+          <p>Choose from card, bank transfer, or USSD</p>
+        </div>
       </div>
     </div>
   );
 }
-
-// Styles object
-const styles = {
-  container: {
-    padding: "30px",
-    fontFamily: "Arial, sans-serif",
-    maxWidth: "1200px",
-    margin: "0 auto",
-  },
-  header: {
-    marginBottom: "30px",
-    color: "#333",
-    fontSize: "2rem",
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  cardsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    gap: "20px",
-    marginBottom: "40px",
-  },
-  card: {
-    background: "#fff",
-    padding: "25px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-    textAlign: "center",
-    transition: "transform 0.3s, boxShadow 0.3s",
-    cursor: "pointer",
-  },
-  pendingCard: {
-    borderLeft: "4px solid #ffc107",
-  },
-  paidCard: {
-    borderLeft: "4px solid #28a745",
-  },
-  revenueCard: {
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    color: "white",
-  },
-  cardTitle: {
-    margin: "0 0 10px 0",
-    fontSize: "1rem",
-    color: "#666",
-    fontWeight: "500",
-  },
-  cardValue: {
-    margin: "0 0 5px 0",
-    fontSize: "2rem",
-    fontWeight: "bold",
-    color: "#333",
-  },
-  cardSubtext: {
-    margin: 0,
-    fontSize: "0.9rem",
-    color: "#999",
-  },
-  tableContainer: {
-    background: "#fff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-  },
-  tableHeader: {
-    margin: "0 0 20px 0",
-    color: "#333",
-    fontSize: "1.3rem",
-    fontWeight: "600",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
-  th: {
-    borderBottom: "2px solid #e0e0e0",
-    padding: "15px 12px",
-    textAlign: "left",
-    color: "#666",
-    fontWeight: "600",
-    fontSize: "0.95rem",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  },
-  td: {
-    padding: "15px 12px",
-    textAlign: "left",
-    borderBottom: "1px solid #f0f0f0",
-    color: "#333",
-  },
-  tr: {
-    transition: "background 0.3s",
-  },
-  amount: {
-    fontWeight: "600",
-    color: "#28a745",
-  },
-  statusBadge: {
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "0.85rem",
-    fontWeight: "600",
-    display: "inline-block",
-  },
-  statusPending: {
-    background: "#fff3cd",
-    color: "#856404",
-  },
-  statusPaid: {
-    background: "#d4edda",
-    color: "#155724",
-  },
-  confirmButton: {
-    padding: "8px 16px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#28a745",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: "0.9rem",
-    fontWeight: "500",
-    transition: "background 0.3s, transform 0.2s",
-  },
-  confirmButtonHover: {
-    background: "#218838",
-  },
-  paidBadge: {
-    padding: "6px 12px",
-    background: "#d4edda",
-    color: "#155724",
-    borderRadius: "20px",
-    fontSize: "0.85rem",
-    fontWeight: "600",
-    display: "inline-block",
-  },
-  noData: {
-    textAlign: "center",
-    padding: "40px",
-    color: "#999",
-    fontSize: "1.1rem",
-  },
-};
 
 export default PaymentPage;
