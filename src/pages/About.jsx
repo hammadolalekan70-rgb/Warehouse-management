@@ -231,8 +231,8 @@ function About() {
         /* small devices <= 480px */
         @media (max-width: 480px) {
           .card-icon {
-            width: 52px;
-            height: 52px;
+            width: 53px;
+            height: 53px;
           }
           .card-icon img {
             width: 30px;
