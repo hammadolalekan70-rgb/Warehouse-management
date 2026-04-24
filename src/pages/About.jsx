@@ -1,6 +1,5 @@
 import React from "react";
 
-// About Item Component: Jumia-style card with icon (no images)
 const AboutItem = ({ title, text, icon, reverse }) => (
   <div className={`jumia-about-card ${reverse ? "reverse" : ""}`}>
     <div className="card-icon">
@@ -54,7 +53,7 @@ function About() {
 
   return (
     <section className="jumia-about">
-      {/* Hero / Banner in Jumia style */}
+      {/* Hero Banner */}
       <div className="jumia-hero">
         <div className="hero-content">
           <h1>About HayCash Warehouse</h1>
@@ -62,7 +61,7 @@ function About() {
         </div>
       </div>
 
-      {/* Cards Grid - Jumia product-grid style */}
+      {/* Cards Grid */}
       <div className="jumia-container">
         <div className="jumia-grid">
           {sections.map((s, index) => (
@@ -77,16 +76,14 @@ function About() {
         </div>
       </div>
 
-      {/* Inline styles - fully responsive, Jumia colors & effects */}
-      <style jsx>{`
-        /* Jumia style reset & base */
+      {/* Plain CSS — works in every React setup */}
+      <style>{`
         .jumia-about {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background: #f5f5f5;  /* Jumia light grey background */
+          background: #f5f5f5;
           color: #1a1a1a;
         }
 
-        /* Jumia Orange Hero Banner */
         .jumia-hero {
           background: linear-gradient(95deg, #f68b1e 0%, #f9a43e 100%);
           padding: 2.5rem 1.5rem;
@@ -95,12 +92,14 @@ function About() {
           margin-bottom: 2rem;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
+
         .hero-content h1 {
           font-size: 2rem;
           font-weight: 700;
           margin: 0 0 0.5rem;
           letter-spacing: -0.3px;
         }
+
         .hero-content p {
           font-size: 1.1rem;
           opacity: 0.95;
@@ -109,21 +108,18 @@ function About() {
           font-weight: 500;
         }
 
-        /* Container like Jumia product listing */
         .jumia-container {
           max-width: 1280px;
           margin: 0 auto;
           padding: 0 1rem 3rem;
         }
 
-        /* Grid layout: Jumia uses 2-4 columns, here responsive grid */
         .jumia-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 1.8rem;
         }
 
-        /* Jumia-style card (white, rounded corners, subtle border, hover lift) */
         .jumia-about-card {
           background: white;
           border-radius: 12px;
@@ -136,27 +132,29 @@ function About() {
           border: 1px solid #eaeaea;
           cursor: pointer;
         }
+
         .jumia-about-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 12px 20px rgba(0,0,0,0.08);
           border-color: #f68b1e;
         }
 
-        /* Icon container - Jumia often uses orange circle or square behind icons */
         .card-icon {
           flex-shrink: 0;
           width: 70px;
           height: 70px;
-          background: #fff2e5;   /* soft orange background */
+          background: #fff2e5;
           border-radius: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.2s;
         }
+
         .jumia-about-card:hover .card-icon {
           background: #f68b1e;
         }
+
         .card-icon img {
           width: 42px;
           height: 42px;
@@ -164,20 +162,22 @@ function About() {
           filter: brightness(0) saturate(100%) invert(35%) sepia(96%) saturate(1236%) hue-rotate(1deg) brightness(98%) contrast(96%);
           transition: filter 0.2s;
         }
+
         .jumia-about-card:hover .card-icon img {
-          filter: brightness(0) invert(1); /* becomes white on hover */
+          filter: brightness(0) invert(1);
         }
 
-        /* Text side */
         .card-text {
           flex: 1;
         }
+
         .card-text h3 {
           font-size: 1.3rem;
           font-weight: 700;
           margin: 0 0 0.4rem;
           color: #1a1a1a;
         }
+
         .card-text p {
           font-size: 0.9rem;
           line-height: 1.45;
@@ -185,14 +185,14 @@ function About() {
           margin: 0;
         }
 
-        /* Reverse layout: only for desktop (icon right, text left) */
+        /* Desktop reverse layout */
         @media (min-width: 768px) {
           .jumia-about-card.reverse {
             flex-direction: row-reverse;
           }
         }
 
-        /* 📱 Mobile fully responsive (Jumia mobile-first) */
+        /* Mobile responsive */
         @media (max-width: 767px) {
           .jumia-grid {
             grid-template-columns: 1fr;
@@ -228,11 +228,10 @@ function About() {
           }
         }
 
-        /* small devices <= 480px */
         @media (max-width: 480px) {
           .card-icon {
-            width: 53px;
-            height: 53px;
+            width: 52px;
+            height: 52px;
           }
           .card-icon img {
             width: 30px;
