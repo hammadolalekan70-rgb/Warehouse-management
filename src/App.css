@@ -7506,3 +7506,112 @@ body {
 .forgot-password a:hover {
   color: #ff6b00;
 }
+/* Base layout */
+.jumia-about {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+/* HERO SECTION */
+.jumia-hero {
+  background: linear-gradient(95deg, #f68b1e, #f9a43e);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.hero-content h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.hero-content p {
+  font-size: 1.1rem;
+  opacity: 0.95;
+}
+
+/* CONTAINER */
+.jumia-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 1rem 3rem;
+}
+
+/* GRID */
+.jumia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* CARD */
+.jumia-about-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+  transition: 0.2s;
+}
+
+.jumia-about-card:hover {
+  transform: translateY(-4px);
+  border-color: #f68b1e;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+/* ICON */
+.card-icon {
+  width: 65px;
+  height: 65px;
+  background: #fff2e5;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-icon img {
+  width: 40px;
+  height: 40px;
+}
+
+/* TEXT */
+.card-text h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+}
+
+.card-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+/* ALTERNATE LAYOUT */
+@media (min-width: 768px) {
+  .jumia-about-card.reverse {
+    flex-direction: row-reverse;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .jumia-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jumia-about-card {
+    flex-direction: row;
+  }
+
+  .hero-content h1 {
+    font-size: 1.6rem;
+  }
+}
